@@ -681,12 +681,12 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .wizard-modal {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 50;
+    z-index: 9999;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -813,7 +813,7 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 body {
-    height: 100svh !important;
+    height: 100dvh !important;
     overflow: hidden !important;
 }
 
@@ -823,6 +823,12 @@ body {
 
 .sidebar {
     overflow: hidden !important;
+}
+
+.chat-input-row {
+    flex-shrink: 0;
+    position: sticky;
+    bottom: 0;
 }
 
 @media (max-width: 768px) {
