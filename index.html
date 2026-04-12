@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watch Party</title>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div id="setup-screen">
+        <div class="setup-card">
+            <h1>Watch Party</h1>
+            <p class="subtitle">Sync a local video file with friends in real time</p>
+
+            <div class="field">
+                <label>Your name</label>
+                <input id="username" placeholder="e.g. Alex" maxlength="24" />
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="createRoom()">Create room (host)</button>
+            </div>
+
+            <div class="divider">or join existing</div>
+
+            <div class="field">
+                <label>Room code</label>
+                <input id="join-code" placeholder="e.g. FILM-4829" style="text-transform:uppercase;" maxlength="12" />
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-secondary" onclick="joinRoom()">Join as guest</button>
+            </div>
+
+            <p class="hint">Host controls playback. Guests sync automatically. Share the room code with friends after
+                creating.</p>
+        </div>
+    </div>
+
+    <div id="room-screen">
+
+        <div class="main-area">
+            <div class="video-section">
+                <div class="video-wrapper" id="video-wrapper">
+                    <div class="video-placeholder" id="video-placeholder">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <rect x="2" y="6" width="20" height="14" rx="2" />
+                            <path d="M9.5 10l5 2-5 2V10z" />
+                        </svg>
+                        <span>Both host and guests must select the same video file</span>
+                        <div style="margin-top: 12px;">
+                            <button class="btn btn-secondary" onclick="document.getElementById('local-file').click()" style="padding: 10px 20px;">Choose Local Video File</button>
+                            <input type="file" id="local-file" accept="video/*" style="display:none;" onchange="loadLocalFile(event)">
+                        </div>
+                    </div>
+                    <video id="player" style="display:none;" preload="metadata" crossorigin="anonymous"></video>
+                    <div id="sync-overlay">
+                        <div class="pill" id="sync-pill"></div>
+                    </div>
+
+                    <div id="zoom-indicator" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(0,0,0,0.6); color:white; padding:10px 20px; border-radius:8px; font-weight:bold; z-index:20; pointer-events:none;">Zoom: 100%</div>
+
+                    <div id="custom-player-ui" class="player-overlay hidden">
+
+                        <div id="zone-left" class="click-zone"></div>
+                        <div id="zone-right" class="click-zone"></div>
+
+                        <div class="player-header">
+                            <button id="back-btn" class="icon-btn" onclick="leaveRoom()">
+                                <svg y="0px" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="currentColor"/></svg>
+                            </button>
+                            <span id="player-title">Watch Party</span>
+                            <div style="flex:1;"></div>
+                            <button class="icon-btn" id="fs-chat-btn" style="display:none;" onclick="toggleFullscreenChat()">
+                                <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" fill="currentColor"/></svg>
+                            </button>
+                            <button class="icon-btn" id="fs-close-chat-btn" style="display:none;" onclick="toggleFullscreenChat()">
+                                <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg>
+                            </button>
+                        </div>
+
+                        <div class="player-center">
+                            <button class="icon-btn large-icon" onclick="seekVideo(-5)">
+                                <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" fill="currentColor"/></svg>
+                            </button>
+                            <button class="icon-btn giant-icon" id="play-pause-btn" onclick="togglePlayPause()">
+                                <svg viewBox="0 0 24 24" id="icon-play"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+                            </button>
+                            <button class="icon-btn large-icon" onclick="seekVideo(5)">
+                                <svg viewBox="0 0 24 24" style="transform: scaleX(-1);"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" fill="currentColor"/></svg>
+                            </button>
+                        </div>
+
+                        <div class="player-bottom">
+                            <div class="time-row" style="padding-left: 8px;">
+                                <span id="time-current">00:00:00</span>
+                                <span class="time-sep"> / </span>
+                                <span id="time-total">00:00:00</span>
+                            </div>
+                            <div class="progress-container">
+                                <input type="range" id="progress-bar" min="0" max="100" value="0" step="0.1">
+                            </div>
+
+                            <div class="controls-row">
+                                <button class="icon-btn" id="lock-btn" onclick="toggleLock()" title="Lock Screen">
+                                    <svg viewBox="0 0 24 24" id="icon-lock-open"><path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM8.9 6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2H8.9V6zM18 20H6V10h12v10z" fill="currentColor"/></svg>
+                                </button>
+                                <button class="icon-btn" onclick="openMenu('menu-speed')" title="Playback Speed">
+                                    <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" fill="currentColor"/></svg>
+                                </button>
+                                <button class="icon-btn" onclick="openMenu('menu-subtitles')" title="Subtitles">
+                                    <svg viewBox="0 0 24 24"><path d="M19 4H5c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 7H9.5v-.5h-2v3h2V13H11v1c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1zm7 0h-1.5v-.5h-2v3h2V13H18v1c0 .55-.45 1-1 1h-3c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1z" fill="currentColor"/></svg>
+                                </button>
+                                <button class="icon-btn" onclick="openMenu('menu-audio')" title="Audio Tracks">
+                                    <svg viewBox="0 0 24 24"><path d="M12 3v9.28a4.39 4.39 0 0 0-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z" fill="currentColor"/></svg>
+                                </button>
+
+                                <div style="flex: 1;"></div>
+
+                                <button class="icon-btn" id="fit-btn" onclick="cycleFitMode()" title="Fit Mode">
+                                    <svg viewBox="0 0 24 24" id="icon-fit"><path d="M3 5v4h2V5h4V3H5c-1.1 0-2 .9-2 2zm2 10H3v4c0 1.1.9 2 2 2h4v-2H5v-4zm14 4h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zm0-16h-4v2h4v4h2V5c0-1.1-.9-2-2-2z M9 9h6v6H9z" fill="currentColor"/></svg>
+                                </button>
+                                <button class="icon-btn" onclick="toggleFullscreen()" title="Fullscreen">
+                                    <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" fill="currentColor"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="menu-speed" class="player-menu hidden">
+                            <div class="menu-title">Speed (Syncs for all)</div>
+                            <div class="menu-item" onclick="setSpeed(0.5)">0.5x</div>
+                            <div class="menu-item" onclick="setSpeed(1)">Normal</div>
+                            <div class="menu-item" onclick="setSpeed(1.25)">1.25x</div>
+                            <div class="menu-item" onclick="setSpeed(1.5)">1.5x</div>
+                            <div class="menu-item" onclick="setSpeed(2)">2.0x</div>
+                        </div>
+
+                        <div id="menu-audio" class="player-menu hidden">
+                            <div class="menu-title">Audio Tracks (Local)</div>
+                            <div id="audio-list">No extra tracks found.</div>
+                        </div>
+
+                        <div id="menu-subtitles" class="player-menu hidden">
+                            <div class="menu-title">Subtitles (Local)</div>
+                            <div id="subtitle-list">
+                                <div class="menu-item" onclick="turnOffSubtitles()">Off</div>
+                            </div>
+                            <div class="menu-divider" style="height:1px; background:rgba(255,255,255,0.1); margin:4px 0;"></div>
+                            <div class="menu-item add-btn" onclick="document.getElementById('local-sub-file').click()">+ Load External (.vtt/.srt)</div>
+                            <input type="file" id="local-sub-file" accept=".vtt,.srt" style="display:none;" onchange="loadExternalSubtitle(event)">
+                        </div>
+
+                        <div id="av-wizard" class="wizard-modal hidden">
+                            <div class="wizard-card">
+                                <h3>Audio / Subtitle Setup</h3>
+                                <p class="wizard-desc">Due to strict browser security algorithms, embedded Audio Tracks and Subtitles inside MKV/MP4 files can be difficult to extract locally. Use a free video converter website or app to convert your video's audio to MP3 or AAC if it plays silently.</p>
+
+                                <div class="wizard-options">
+                                    <div class="wiz-opt" onclick="expandWiz(1)">
+                                        <strong>1. Audio Tracks (Experimental Flag)</strong>
+                                        <div class="wiz-exp" id="wiz-exp-1">
+                                            <p>Browsers hide local Audio Tracks API by default. You MUST enable it manually:</p>
+                                            <ul>
+                                                <li><strong>Chrome/Edge:</strong> Go to <a class="wizard-link" href="chrome://flags/#enable-experimental-web-platform-features" target="_blank" onclick="copyFlag('chrome://flags/#enable-experimental-web-platform-features', event)">chrome://flags/#enable-experimental-web-platform-features</a> and switch to Enabled.</li>
+                                                <li><strong>Firefox:</strong> Go to <span class="copy-text" onclick="copyFlag('about:config', event)">about:config</span> and set <span class="copy-text" onclick="copyFlag('media.track.enabled', event)">media.track.enabled</span> to true.</li>
+                                            </ul>
+                                            <p>Then restart your browser and click Check.</p>
+                                            <button class="btn btn-secondary" onclick="checkAudioFlag(event)">Check and Continue</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="wiz-opt" onclick="expandWiz(2)">
+                                        <strong>2. Subtitles Workaround</strong>
+                                        <div class="wiz-exp" id="wiz-exp-2">
+                                            <p>Web browsers almost ALWAYS refuse to read embedded subtitles inside local MKV files. To use subtitles, just hit the Subtitles icon in the player and select <strong>Load External (.vtt/.srt)</strong> to attach your own subtitle file directly.</p>
+                                            <button class="btn btn-secondary" onclick="saveWiz(2, event)">Understood</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="wiz-opt" onclick="expandWiz(3)">
+                                        <strong>3. Ignore These Features</strong>
+                                        <div class="wiz-exp" id="wiz-exp-3">
+                                            <p>I don't need multiple audio tracks or subtitles right now.</p>
+                                            <button class="btn btn-secondary" onclick="saveWiz(3, event)">Continue</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="icon-btn close-wiz" onclick="hideWizard()">✖</button>
+                            </div>
+                        </div>
+
+                        <div id="frame-modal" class="wizard-modal hidden" style="z-index: 1000;">
+                            <div class="wizard-card" style="max-width: 600px; width: 95%;">
+                                <h3 id="frame-title">Select a Frame</h3>
+                                <p class="wizard-desc">Captured the last 10 seconds of playback exactly where the video is currently paused. Generating previews...</p>
+                                <div id="frame-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; max-height: 50vh; overflow-y: auto;">
+
+                                </div>
+                                <div style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 12px;">
+                                    <button class="btn btn-secondary" onclick="document.getElementById('frame-modal').classList.add('hidden')">Cancel</button>
+                                </div>
+                                <button class="icon-btn close-wiz" onclick="document.getElementById('frame-modal').classList.add('hidden')">✖</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="middle-scrollable" style="display: flex; flex-direction: column; width: 100%;">
+                    <div class="topbar">
+                        <span class="role-badge" id="role-badge">Host</span>
+                        <span class="room-id">Room: <span id="room-id-display" onclick="copyRoomCode()">–</span></span>
+                        <span style="font-size:12px;color:var(--muted);">click to copy</span>
+                        <span class="viewers" id="viewer-count"><strong>1</strong> watching</span>
+                    </div>
+
+                    <div class="controls" id="host-controls" style="display:none;">
+                        <div class="controls-label">Host settings</div>
+                        <div class="control-row" style="margin-top:0;">
+                            <label style="font-size:13px; display:flex; align-items:center; gap:6px; cursor:pointer;" id="guest-toggle-label">
+                                <input type="checkbox" id="guest-controls-toggle" onchange="toggleGuestControls()">
+                                Allow guests to control playback
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="guest-info" id="guest-info" style="display:none;">
+                    You're a guest — the host controls playback.
+                </div>
+            </div>
+
+            <div class="sidebar" id="global-sidebar">
+                <button id="drawer-close-btn" class="icon-btn" onclick="if(document.fullscreenElement) toggleFullscreenChat()" style="display:none; position:absolute; top:8px; right:8px; z-index:100; color:#fff;">✖</button>
+                <div class="sidebar-header">Chat</div>
+                <div class="messages" id="messages"></div>
+                <div class="chat-input-row" style="display:flex; align-items:center; gap:8px;">
+                    <button id="add-frame-btn" class="icon-btn" onclick="triggerAddFrame()" title="Add Frame" style="color:var(--text); padding:0;">
+                        <svg viewBox="0 0 24 24" style="width:24px;height:24px;"><path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z" fill="currentColor"/></svg>
+                    </button>
+                    <input id="chat-input" placeholder="Say something…" style="flex:1;" onkeydown="if(event.key==='Enter')sendChat()" />
+                    <button class="send-btn" onclick="sendChat()">↑</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
+
