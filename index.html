@@ -64,9 +64,62 @@
                         <div class="pill" id="sync-pill"></div>
                     </div>
 
-                    <div id="zoom-indicator"
-                        style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(0,0,0,0.6); color:white; padding:10px 20px; border-radius:8px; font-weight:bold; z-index:20; pointer-events:none;">
-                        Zoom: 100%</div>
+                    <div id="av-wizard" class="wizard-modal hidden">
+                        <div class="wizard-card">
+                            <h3>Audio / Subtitle Setup</h3>
+                            <p class="wizard-desc">Due to strict browser security algorithms, embedded Audio Tracks
+                                and Subtitles inside MKV/MP4 files can be difficult to extract locally. Use a free
+                                video converter website or app to convert your video's audio to MP3 or AAC if it
+                                plays silently.</p>
+
+                            <div class="wizard-options">
+                                <div class="wiz-opt" onclick="expandWiz(1)">
+                                    <strong>1. Audio Tracks (Experimental Flag)</strong>
+                                    <div class="wiz-exp" id="wiz-exp-1">
+                                        <p>Browsers hide local Audio Tracks API by default. You MUST enable it
+                                            manually:</p>
+                                        <ul>
+                                            <li><strong>Chrome/Edge:</strong> Go to <a class="wizard-link"
+                                                    href="chrome://flags/#enable-experimental-web-platform-features"
+                                                    target="_blank"
+                                                    onclick="copyFlag('chrome://flags/#enable-experimental-web-platform-features', event)">chrome://flags/#enable-experimental-web-platform-features</a>
+                                                and switch to Enabled.</li>
+                                            <li><strong>Firefox:</strong> Go to <span class="copy-text"
+                                                    onclick="copyFlag('about:config', event)">about:config</span>
+                                                and set <span class="copy-text"
+                                                    onclick="copyFlag('media.track.enabled', event)">media.track.enabled</span>
+                                                to true.</li>
+                                        </ul>
+                                        <p>Then restart your browser and click Check.</p>
+                                        <button class="btn btn-secondary" onclick="checkAudioFlag(event)">Check and
+                                            Continue</button>
+                                    </div>
+                                </div>
+
+                                <div class="wiz-opt" onclick="expandWiz(2)">
+                                    <strong>2. Subtitles Workaround</strong>
+                                    <div class="wiz-exp" id="wiz-exp-2">
+                                        <p>Web browsers almost ALWAYS refuse to read embedded subtitles inside local
+                                            MKV files. To use subtitles, just hit the Subtitles icon in the player
+                                            and select <strong>Load External (.vtt/.srt)</strong> to attach your own
+                                            subtitle file directly.</p>
+                                        <button class="btn btn-secondary"
+                                            onclick="saveWiz(2, event)">Understood</button>
+                                    </div>
+                                </div>
+
+                                <div class="wiz-opt" onclick="expandWiz(3)">
+                                    <strong>3. Ignore These Features</strong>
+                                    <div class="wiz-exp" id="wiz-exp-3">
+                                        <p>I don't need multiple audio tracks or subtitles right now.</p>
+                                        <button class="btn btn-secondary"
+                                            onclick="saveWiz(3, event)">Continue</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="icon-btn close-wiz" onclick="hideWizard()">✖</button>
+                        </div>
+                    </div>
 
                     <div id="custom-player-ui" class="player-overlay hidden">
 
@@ -207,80 +260,6 @@
                                 onchange="loadExternalSubtitle(event)">
                         </div>
 
-                        <div id="av-wizard" class="wizard-modal hidden">
-                            <div class="wizard-card">
-                                <h3>Audio / Subtitle Setup</h3>
-                                <p class="wizard-desc">Due to strict browser security algorithms, embedded Audio Tracks
-                                    and Subtitles inside MKV/MP4 files can be difficult to extract locally. Use a free
-                                    video converter website or app to convert your video's audio to MP3 or AAC if it
-                                    plays silently.</p>
-
-                                <div class="wizard-options">
-                                    <div class="wiz-opt" onclick="expandWiz(1)">
-                                        <strong>1. Audio Tracks (Experimental Flag)</strong>
-                                        <div class="wiz-exp" id="wiz-exp-1">
-                                            <p>Browsers hide local Audio Tracks API by default. You MUST enable it
-                                                manually:</p>
-                                            <ul>
-                                                <li><strong>Chrome/Edge:</strong> Go to <a class="wizard-link"
-                                                        href="chrome://flags/#enable-experimental-web-platform-features"
-                                                        target="_blank"
-                                                        onclick="copyFlag('chrome://flags/#enable-experimental-web-platform-features', event)">chrome://flags/#enable-experimental-web-platform-features</a>
-                                                    and switch to Enabled.</li>
-                                                <li><strong>Firefox:</strong> Go to <span class="copy-text"
-                                                        onclick="copyFlag('about:config', event)">about:config</span>
-                                                    and set <span class="copy-text"
-                                                        onclick="copyFlag('media.track.enabled', event)">media.track.enabled</span>
-                                                    to true.</li>
-                                            </ul>
-                                            <p>Then restart your browser and click Check.</p>
-                                            <button class="btn btn-secondary" onclick="checkAudioFlag(event)">Check and
-                                                Continue</button>
-                                        </div>
-                                    </div>
-
-                                    <div class="wiz-opt" onclick="expandWiz(2)">
-                                        <strong>2. Subtitles Workaround</strong>
-                                        <div class="wiz-exp" id="wiz-exp-2">
-                                            <p>Web browsers almost ALWAYS refuse to read embedded subtitles inside local
-                                                MKV files. To use subtitles, just hit the Subtitles icon in the player
-                                                and select <strong>Load External (.vtt/.srt)</strong> to attach your own
-                                                subtitle file directly.</p>
-                                            <button class="btn btn-secondary"
-                                                onclick="saveWiz(2, event)">Understood</button>
-                                        </div>
-                                    </div>
-
-                                    <div class="wiz-opt" onclick="expandWiz(3)">
-                                        <strong>3. Ignore These Features</strong>
-                                        <div class="wiz-exp" id="wiz-exp-3">
-                                            <p>I don't need multiple audio tracks or subtitles right now.</p>
-                                            <button class="btn btn-secondary"
-                                                onclick="saveWiz(3, event)">Continue</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button class="icon-btn close-wiz" onclick="hideWizard()">✖</button>
-                            </div>
-                        </div>
-
-                        <div id="frame-modal" class="wizard-modal hidden" style="z-index: 1000;">
-                            <div class="wizard-card" style="max-width: 600px; width: 95%;">
-                                <h3 id="frame-title">Select a Frame</h3>
-                                <p class="wizard-desc">Captured the last 10 seconds of playback exactly where the video
-                                    is currently paused. Generating previews...</p>
-                                <div id="frame-grid"
-                                    style="display:grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; max-height: 50vh; overflow-y: auto;">
-
-                                </div>
-                                <div style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 12px;">
-                                    <button class="btn btn-secondary"
-                                        onclick="document.getElementById('frame-modal').classList.add('hidden')">Cancel</button>
-                                </div>
-                                <button class="icon-btn close-wiz"
-                                    onclick="document.getElementById('frame-modal').classList.add('hidden')">✖</button>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -316,14 +295,6 @@
                 <div class="sidebar-header">Chat</div>
                 <div class="messages" id="messages"></div>
                 <div class="chat-input-row" style="display:flex; align-items:center; gap:8px;">
-                    <button id="add-frame-btn" class="icon-btn" onclick="triggerAddFrame()" title="Add Frame"
-                        style="color:var(--text); padding:0;">
-                        <svg viewBox="0 0 24 24" style="width:24px;height:24px;">
-                            <path
-                                d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"
-                                fill="currentColor" />
-                        </svg>
-                    </button>
                     <input id="chat-input" placeholder="Say something…" style="flex:1;"
                         onkeydown="if(event.key==='Enter')sendChat()" />
                     <button class="send-btn" onclick="sendChat()">↑</button>
