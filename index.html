@@ -31,6 +31,10 @@
             <div class="divider">or join existing</div>
 
             <div class="field">
+                <label>Your name</label>
+                <input id="join-username" placeholder="e.g. Misty" maxlength="24" />
+            </div>
+            <div class="field">
                 <label>Room code</label>
                 <input id="join-code" placeholder="e.g. FILM-4829" style="text-transform:uppercase;" maxlength="12" />
             </div>
@@ -64,10 +68,14 @@
                         <div class="pill" id="sync-pill"></div>
                     </div>
 
-                    <button class="icon-btn" id="fs-chat-btn" style="display:none; position:absolute; top:15px; right:15px; z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.3s; background: rgba(0,0,0,0.4); border-radius: 50%; padding: 6px;" onclick="toggleFullscreenChat()">
-                        <span class="chat-badge" style="display:none; position:absolute; top:0; right:0; width:10px; height:10px; background:var(--danger); border-radius:50%; box-shadow: 0 0 0 2px rgba(0,0,0,0.6);"></span>
+                    <button class="icon-btn" id="fs-chat-btn"
+                        style="display:none; position:absolute; top:15px; right:15px; z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.3s; background: rgba(0,0,0,0.4); border-radius: 50%; padding: 6px;"
+                        onclick="toggleFullscreenChat()">
+                        <span class="chat-badge"
+                            style="display:none; position:absolute; top:0; right:0; width:10px; height:10px; background:var(--danger); border-radius:50%; box-shadow: 0 0 0 2px rgba(0,0,0,0.6);"></span>
                         <svg viewBox="0 0 24 24">
-                            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" fill="currentColor" />
+                            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"
+                                fill="currentColor" />
                         </svg>
                     </button>
 
