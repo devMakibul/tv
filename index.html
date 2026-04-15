@@ -280,9 +280,16 @@
                                     d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                             </svg>
                             <strong>1</strong></span>
-                        <label class="guest-toggle-label" id="host-controls">
-                            <input type="checkbox" id="guest-controls-toggle" onchange="toggleGuestControls()">
+                        <label class="setting-item" id="host-controls">
                             Guest Controls
+                            <input type="checkbox" id="guest-controls-toggle" onchange="toggleGuestControls()">
+                        </label>
+                    </div>
+
+                    <div class="settings-bar">
+                        <label class="setting-item">
+                            Auto-show chat on new message in full-screen
+                            <input type="checkbox" id="auto-show-chat-toggle" onchange="toggleAutoShowChat()">
                         </label>
                     </div>
 

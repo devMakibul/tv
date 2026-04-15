@@ -205,16 +205,29 @@ body {
     color: var(--text);
 }
 
-.guest-toggle-label {
+.settings-bar {
     display: flex;
     align-items: center;
-    gap: 4px;
+    padding: 0 10px 10px;
+    gap: 8px;
+}
+
+.setting-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     cursor: pointer;
     font-size: 11px;
+    color: var(--muted);
+    transition: color 0.2s;
     margin-left: auto;
 }
 
-.guest-toggle-label input {
+.setting-item:hover {
+    color: var(--text);
+}
+
+.setting-item input {
     appearance: none;
     -webkit-appearance: none;
     position: relative;
@@ -228,7 +241,7 @@ body {
     transition: background 0.2s, border-color 0.2s;
 }
 
-.guest-toggle-label input::after {
+.setting-item input::after {
     content: '';
     position: absolute;
     top: 2.5px;
@@ -240,12 +253,12 @@ body {
     transition: transform 0.2s, background 0.2s;
 }
 
-.guest-toggle-label input:checked {
+.setting-item input:checked {
     background: var(--accent);
     border-color: var(--accent);
 }
 
-.guest-toggle-label input:checked::after {
+.setting-item input:checked::after {
     transform: translateX(11.5px);
     background: #fff;
 }
