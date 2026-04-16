@@ -79,6 +79,8 @@
                         </svg>
                     </button>
 
+                    <div id="ui-intercept"></div>
+
                     <div id="av-wizard" class="wizard-modal hidden">
                         <div class="wizard-card">
                             <h3>Audio / Subtitle Setup</h3>
@@ -274,7 +276,7 @@
                             Code
                         </span>
                         <span class="room-id"><span id="room-id-display" onclick="copyRoomCode()">–</span></span>
-                        <span class="viewers" id="viewer-count">
+                        <span class="viewers" id="viewer-count" onclick="openMembersPopup()" title="View room members">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                                 <path
                                     d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
@@ -287,11 +289,19 @@
                     </div>
 
                     <div class="settings-bar">
+                        <label class="setting-item" id="host-chat-settings" style="display:none;">
+                            Allow chatting
+                            <input type="checkbox" id="chat-enabled-toggle" onchange="toggleChatEnabled()" checked>
+                        </label>
+                    </div>
+
+                    <div class="settings-bar">
                         <label class="setting-item">
                             Auto-show chat on new message in full-screen
                             <input type="checkbox" id="auto-show-chat-toggle" onchange="toggleAutoShowChat()">
                         </label>
                     </div>
+
 
                 </div>
 
@@ -304,7 +314,13 @@
                 <button id="drawer-close-btn" class="icon-btn"
                     onclick="if(document.fullscreenElement) toggleFullscreenChat()"
                     style="display:none; position:absolute; top:8px; right:8px; z-index:100; color:#fff;">✖</button>
-                <div class="sidebar-header">Chat</div>
+                <div class="sidebar-header">
+                    Chat
+                    <label class="kb-toggle-label setting-item" id="custom-kb-label">
+                        <span>Keyboard</span>
+                        <input type="checkbox" id="custom-kb-toggle" onchange="updateCustomKeyboard()">
+                    </label>
+                </div>
                 <div class="messages" id="messages"></div>
                 <div class="chat-input-row" style="display:flex; align-items:center; gap:8px;">
                     <input id="chat-input" placeholder="Say something…" style="flex:1;"
@@ -315,11 +331,27 @@
                         </svg>
                     </button>
                 </div>
+                <div id="chat-disabled-notice" onclick="toggleChatEnabled()"
+                    style="display:none; font-size:0.75rem; color:var(--muted); text-align:center; padding:4px 0;">Chat
+                    disabled by host</div>
+                <div id="custom-keyboard"></div>
             </div>
         </div>
     </div>
 
     <div id="toast"></div>
+
+    <div id="members-popup"
+        style="display:none; position:fixed; inset:0; z-index:10000; align-items:center; justify-content:center;">
+        <div class="members-popup-backdrop" onclick="closeMembersPopup()"></div>
+        <div class="members-popup-card">
+            <div class="members-popup-header">
+                <span>In this room</span>
+                <button class="icon-btn" onclick="closeMembersPopup()" style="color:var(--fg);">&#x2716;</button>
+            </div>
+            <div id="members-list"></div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
